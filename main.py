@@ -246,10 +246,10 @@ def calculate_aml_risk_score(df_transactions):
     final_score = min(100, max(0, int(final_score)))
     return final_score
 
-# Function to create a financial summary card
+
 def display_financial_summary_card(aml_risk_score, daily_avg_balance, max_balance, min_balance, days_gap, transactions, max_dormant_days, date_range):
     """
-    Display a financial summary card with key metrics.
+    Display a financial summary card with key metrics in two vertical columns with hover effects.
     
     Parameters:
     - aml_risk_score (int): AML risk score
@@ -261,96 +261,133 @@ def display_financial_summary_card(aml_risk_score, daily_avg_balance, max_balanc
     - max_dormant_days (int): Maximum dormant days
     - date_range (str): Date range for the transactions
     """
-    # Use Streamlit's columns to create a grid layout for the card
-    st.markdown("### Financial Summary")
-    
-    # Create a container for the card with custom styling
-    with st.container():
-        # Apply some CSS to style the card
-        st.markdown("""
-            <style>
-            .card {
-                border: 1px solid #e6e6e6;
-                border-radius: 10px;
-                padding: 20px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                background-color: #ffffff;
-                margin-bottom: 20px;
+    # Add a title for the financial summary
+    st.markdown("### Financial Summary", unsafe_allow_html=True)
+
+    # Inject custom CSS for styling and hover effects
+    st.markdown("""
+        <style>
+        .card-container {
+            display: flex;
+            flex-direction: row; /* Arrange columns side by side */
+            justify-content: space-between; /* Space columns evenly */
+            gap: 2rem; /* Space between columns */
+            margin: 1.5rem 0; /* Vertical margin for spacing */
+            width: 100%; /* Ensure the container takes full width */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        .card-column {
+            display: flex;
+            flex-direction: column; /* Stack cards vertically within each column */
+            gap: 1rem; /* Space between cards in a column */
+            flex: 1; /* Allow columns to grow equally */
+            min-width: 15rem; /* Minimum width for each column */
+        }
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem; /* Increased padding for larger text */
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            min-height: 6rem; /* Increased height to accommodate larger text */
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            background-color: #f9fafb; /* Subtle background change on hover */
+        }
+        .metric-label {
+            font-size: 1.1rem; /* Increased font size for labels */
+            font-weight: 900; /* Bold labels */
+            color: #37231f;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem; /* Increased spacing below labels */
+            line-height: 1.2; /* Improve readability */
+        }
+        .metric-value {
+            font-size: 1.5rem; /* Increased font size for values */
+            font-weight: 1100; /* Extra bold values */
+            color: #1f2737;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.5rem; /* Increased height for larger text */
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card-container {
+                flex-direction: column; /* Stack columns vertically on smaller screens */
+                align-items: center; /* Center columns on smaller screens */
             }
-            .metric {
-                text-align: center;
-                margin-bottom: 10px;
+            .card-column {
+                width: 100%; /* Full width on smaller screens */
+                max-width: 20rem; /* Limit width for better readability */
+            }
+            .card {
+                min-height: 5.5rem; /* Slightly smaller height for mobile */
             }
             .metric-label {
-                font-size: 12px;
-                color: #666;
-                text-transform: uppercase;
+                font-size: 0.85rem; /* Slightly smaller font for mobile */
             }
             .metric-value {
-                font-size: 20px;
-                font-weight: bold;
-                color: #333;
+                font-size: 1.4rem; /* Slightly smaller font for mobile */
             }
-            </style>
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Start the container to hold the two columns
+    st.markdown('<div class="card-container">', unsafe_allow_html=True)
+
+    # First column: AML Risk Score, Daily Avg Balance, Max Balance, Min Balance
+    st.markdown('<div class="card-column">', unsafe_allow_html=True)
+    first_column_metrics = [
+        ("AML Risk Score", aml_risk_score),
+        ("Daily Avg Balance", f"₹{daily_avg_balance:,.2f}"),
+        ("Max Balance", f"₹{max_balance:,.2f}"),
+        ("Min Balance", f"₹{min_balance:,.2f}"),
+    ]
+    for label, value in first_column_metrics:
+        st.markdown(f"""
+            <div class="card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+            </div>
         """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        # Create a card div
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+    # Second column: Days Gap B/W Max & Min, Transactions, Max Dormant Days
+    st.markdown('<div class="card-column">', unsafe_allow_html=True)
+    second_column_metrics = [
+        ("Days Gap B/W Max & Min", f"{days_gap} days"),
+        (f"Transactions<br>({date_range})", transactions),
+        ("Max Dormant Days", max_dormant_days),
+    ]
+    for label, value in second_column_metrics:
+        st.markdown(f"""
+            <div class="card">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{value}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        # Create columns for the metrics
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    # Close the container
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        # Display each metric in its own column
-        with col1:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">AML Risk Score</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">{aml_risk_score}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col2:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Daily Avg Balance</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">₹ {daily_avg_balance:,.2f}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col3:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Max Balance</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">₹ {max_balance:,.2f}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col4:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Min Balance</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">₹ {min_balance:,.2f}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col5:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Days Gap B/W Max & Min Balance</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">{days_gap}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col6:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Transactions<br>{date_range}</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">{transactions}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col7:
-            st.markdown('<div class="metric">', unsafe_allow_html=True)
-            st.markdown('<div class="metric-label">Max Dormant Days</div>', unsafe_allow_html=True)
-            st.markdown(f'<div class="metric-value">{max_dormant_days}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # Close the card div
-        st.markdown('</div>', unsafe_allow_html=True)
 
 # Refine transaction tagging
 def refine_tagging(transactions):
     category_keywords = {
         'Travel': ['irctc', 'uber', 'ola', 'travel', 'makemytrip', 'uts', 'railway', 'metro', 'bus', 'flight', 'ticket'],
-        'Food&Dining': ['swiggy', 'zomato', 'restaurant', 'dining', 'food', 'eatery', 'cafe', 'buffet', 'dominos', 'pizza', 'kfc', 'mcdonalds', 'burgerking', 'subway', 'pizzahut', 'starbucks', 'ccd', 'barista', 'chai', 'coffee'],
+        'Food&Dining': ['swiggy', 'zomato', 'restaurant', 'dining', 'food Afternoon', 'eatery', 'cafe', 'buffet', 'dominos', 'pizza', 'kfc', 'mcdonalds', 'burgerking', 'subway', 'pizzahut', 'starbucks', 'ccd', 'barista', 'chai', 'coffee'],
         'Grocery': ['grocery', 'blinkit', 'bigbasket', 'fresh', 'big bazaar', 'd mart', 'grofers', 'reliance fresh', 'spencers', 'nilgiris', 'heritage'],
         'Shopping': ['amazon', 'flipkart', 'paytm', 'shopping', 'myntra', 'snapdeal', 'pantaloons', 'zudio', 'reliance trends', 'westside', 'lifestyle', 'shoppers stop', 'central', 'max', 'uniqlo', 'h&m', 'zara', 'bata'],
         'Movies&Entertainment': ['netflix', 'bookmyshow', 'entertainment', 'hotstar', 'prime', 'zee5', 'sonyliv', 'disney', 'imagica'],
@@ -455,13 +492,18 @@ def parse_file(file, file_extension):
     if file_extension == "pdf":
         reader = PdfReader(temp_file_path)
         if reader.is_encrypted:
-            password = st.text_input("Enter PDF Password:", type="password")
+            # Create a container for the password input
+            password_container = st.empty()
+            # Display password input in the container
+            password = password_container.text_input("Enter PDF Password:", type="password")
             if password:
                 try:
                     success = reader.decrypt(password)
                     if success:
                         st.session_state.pdf_password = password
                         st.success("PDF decrypted successfully!")
+                        # Clear the password input field after successful decryption
+                        password_container.empty()
                     else:
                         st.error("Incorrect password. Please try again.")
                         st.stop()
@@ -482,7 +524,10 @@ def parse_file(file, file_extension):
         with open(temp_file_path, "rb") as f:
             office_file = msoffcrypto.OfficeFile(f)
             if office_file.is_encrypted():
-                password = st.text_input("Enter Excel Password:", type="password")
+                # Create a container for the password input
+                password_container = st.empty()
+                # Display password input in the container
+                password = password_container.text_input("Enter Excel Password:", type="password")
                 if password:
                     try:
                         decrypted_file = io.BytesIO()
@@ -491,6 +536,8 @@ def parse_file(file, file_extension):
                         df = pd.read_excel(decrypted_file)
                         docs = [Document(page_content=df.to_string())]
                         st.success("Excel file decrypted successfully!")
+                        # Clear the password input field after successful decryption
+                        password_container.empty()
                     except Exception as e:
                         st.error(f"Error decrypting Excel: {e}")
                         st.stop()
@@ -506,7 +553,6 @@ def parse_file(file, file_extension):
             df = pd.read_csv(temp_file_path)  # Directly read the CSV file
             docs = [Document(page_content=df.to_string())]
             st.success("CSV file processed successfully!")
-
         except Exception as e:
             st.error(f"Error processing CSV: {e}")
             st.stop()
@@ -577,12 +623,44 @@ async def analyze_transactions_with_llm(transactions):
     analysis_result = await llm.ainvoke(prompt)
     return analysis_result
 
-def run_async(func, *args, **kwargs):
+# Helper function to run async tasks with a progress bar
+def run_with_progress_bar(async_func, *args, description="Processing", total_steps=100, **kwargs):
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    status_text.text(f"{description}... 0%")
+
+    # Simulate progress (you can adjust logic based on actual task completion)
+    async def wrapped_func():
+        result = await async_func(*args, **kwargs)
+        return result
+
     loop = asyncio.get_event_loop()
     if loop.is_running():
-        return asyncio.run_coroutine_threadsafe(func(*args, **kwargs), loop).result()
+        task = asyncio.run_coroutine_threadsafe(wrapped_func(), loop)
+        # Simulate progress updates (adjust based on your async task's nature)
+        for i in range(total_steps):
+            task_result = task.result() if task.done() else None
+            if task_result:
+                progress_bar.progress(100)
+                status_text.text(f"{description}... 100%")
+                break
+            progress_bar.progress(i + 1)
+            status_text.text(f"{description}... {i + 1}%")
+            asyncio.sleep(0.1)  # Simulate async work; adjust timing as needed
+        result = task.result()
     else:
-        return loop.run_until_complete(func(*args, **kwargs))
+        result = loop.run_until_complete(wrapped_func())
+        for i in range(total_steps):
+            progress_bar.progress(i + 1)
+            status_text.text(f"{description}... {i + 1}%")
+            asyncio.sleep(0.01)  # Simulate progress; adjust timing
+        progress_bar.progress(100)
+        status_text.text(f"{description}... 100%")
+
+    # Clear the progress bar and status text after completion
+    progress_bar.empty()
+    status_text.empty()
+    return result
 
 def generate_pie_chart(df, names_col, values_col, title, hole=0.3):
     """
@@ -605,7 +683,17 @@ def generate_pie_chart(df, names_col, values_col, title, hole=0.3):
 
 # Streamlit UI
 st.set_page_config(page_title="Bank Statement Analyzer", page_icon="💰", layout="centered")
-st.title("📊 Bank Statement Analysis")
+st.title("📊 Bank Statement Analyzer")
+
+# Add a small subtitle/message below the title
+st.markdown(
+    """
+    <div style="font-size: 1rem; font-style: italic; color: #6b7280; margin-top: -10px; margin-bottom: 20px;">
+    Kindly upload the bank statements for the past three months. Thank you.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # File uploader
 file = st.sidebar.file_uploader("Upload your document", type=["pdf", "txt", "docx", "jpg", "jpeg", "png", "xlsx", "csv"])
@@ -638,14 +726,14 @@ if file:
     
     if context:
         if "combined_json" not in st.session_state:
-            with st.spinner("Processing transactions in batches..."):
-                st.session_state.combined_json = run_async(
-                    process_chunks_in_batches, 
-                    document_texts, 
-                    80, 
-                    context, 
-                    batch_size=10
-                )
+            st.session_state.combined_json = run_with_progress_bar(
+                process_chunks_in_batches,
+                document_texts,
+                80,
+                context,
+                batch_size=10,
+                description="Processing transactions in batches"
+            )
         
         combined_json = st.session_state.combined_json
         
@@ -797,7 +885,7 @@ if file:
                     spending_by_category,
                     names_col="tag",
                     values_col="amount",
-                    title=f"Spending by Tag {title_suffix}"
+                    title=f"Spending {title_suffix}"
                 )
                 st.plotly_chart(fig_spending_pie)
 
@@ -812,20 +900,23 @@ if file:
                     x="date",
                     y="amount",
                     color="tag",
-                    title=f"Monthly Spending by Tag {title_suffix}"
+                    title=f"Monthly Spending {title_suffix}"
                 )
                 st.plotly_chart(fig_spending_bar)
 
                 # Analyze transactions with LLM and store in session state
                 if "analysis_result" not in st.session_state:
-                    with st.spinner("Analyzing transactions..."):
-                        st.session_state.analysis_result = run_async(analyze_transactions_with_llm, financial_data)
+                    st.session_state.analysis_result = run_with_progress_bar(
+                        analyze_transactions_with_llm,
+                        financial_data,
+                        description="Analyzing transactions"
+                    )
                 
                 st.subheader("Analysis Result")
                 st.write(st.session_state.analysis_result.content)
 
                 # Display tagged and flagged transactions
-                st.subheader("Tagged and Flagged Transactions")
+                st.subheader("All Transactions")
                 st.dataframe(df_transactions[['date', 'amount', 'transaction_type', 'tag', 'flag', 'is_weekend']])
 
             else:
