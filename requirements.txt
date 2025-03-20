@@ -12,3 +12,4 @@ msoffcrypto-tool
 pytesseract
 python-dotenv
 numpy
+openpyxl
